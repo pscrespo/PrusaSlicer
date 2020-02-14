@@ -3029,6 +3029,42 @@ DynamicPrintConfig* DynamicPrintConfig::new_from_defaults_keys(const std::vector
     return out;
 }
 
+double DynamicPrintConfig::min_object_distance() const
+{   
+    double ret = 0.;
+    
+    if (printer_technology() == ptSLA) ret = 6.;
+    else {
+        auto ecr_opt = option<ConfigOptionFloat>("extruder_clearance_radius");
+        auto dd_opt  = option<ConfigOptionFloat>("duplicate_distance");
+        auto co_opt  = option<ConfigOptionBool>("complete_objects");
+
+        if (!ecr_opt || !dd_opt || !co_opt) ret = 0.;
+        else {
+            // min object distance is max(duplicate_distance, clearance_radius)
+            ret = (co_opt->value && ecr_opt->value > dd_opt->value) ?
+                      ecr_opt->value : dd_opt->value;
+        }
+    }
+
+    return ret;
+}
+
+PrinterTechnology DynamicPrintConfig::printer_technology() const
+{
+    PrinterTechnology tech = ptUnknown;
+    const ConfigOptionEnum<PrinterTechnology> *opt = option<ConfigOptionEnum<PrinterTechnology>>("printer_technology");
+    
+    if (!opt) {
+        const ConfigOptionBool *export_opt = option<ConfigOptionBool>("export_sla");
+        if (export_opt && export_opt->getBool()) tech = ptSLA;
+    } else {
+        tech = opt->value;
+    }
+    
+    return tech;
+}
+
 void DynamicPrintConfig::normalize()
 {
     if (this->has("extruder")) {
@@ -3097,22 +3133,6 @@ std::string DynamicPrintConfig::validate()
         //FIXME no validation on SLA data?
         return std::string();
     }
-}
-
-double PrintConfig::min_object_distance() const
-{
-    return PrintConfig::min_object_distance(static_cast<const ConfigBase*>(this));
-}
-
-double PrintConfig::min_object_distance(const ConfigBase *config)
-{
-    double extruder_clearance_radius = config->option("extruder_clearance_radius")->getFloat();
-    double duplicate_distance = config->option("duplicate_distance")->getFloat();
-
-    // min object distance is max(duplicate_distance, clearance_radius)
-    return (config->option("complete_objects")->getBool() && extruder_clearance_radius > duplicate_distance)
-        ? extruder_clearance_radius
-        : duplicate_distance;
 }
 
 //FIXME localize this function.

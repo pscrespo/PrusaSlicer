@@ -210,6 +210,8 @@ public:
 
     static DynamicPrintConfig  full_print_config();
     static DynamicPrintConfig* new_from_defaults_keys(const std::vector<std::string> &keys);
+    double min_object_distance() const;
+    PrinterTechnology printer_technology() const;
 
     // Overrides ConfigBase::def(). Static configuration definition. Any value stored into this ConfigBase shall have its definition here.
     const ConfigDef*    def() const override { return &print_config_def; }
@@ -749,8 +751,6 @@ class PrintConfig : public MachineEnvelopeConfig, public GCodeConfig
     STATIC_PRINT_CONFIG_CACHE_DERIVED(PrintConfig)
     PrintConfig() : MachineEnvelopeConfig(0), GCodeConfig(0) { initialize_cache(); *this = s_cache_PrintConfig.defaults(); }
 public:
-    double                          min_object_distance() const;
-    static double                   min_object_distance(const ConfigBase *config);
 
     ConfigOptionBool                avoid_crossing_perimeters;
     ConfigOptionPoints              bed_shape;
