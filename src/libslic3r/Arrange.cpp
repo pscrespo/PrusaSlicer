@@ -544,6 +544,23 @@ BedShapeHint &BedShapeHint::operator=(BedShapeHint &&cpy)
     return *this;
 }
 
+BoundingBox BedShapeHint::get_bounding_box() const
+{
+    switch(m_type) {
+    case bsBox: return m_bed.box;
+    case bsCircle: {
+        Point c = m_bed.circ.center();
+        Point offs{m_bed.circ.radius(), m_bed.circ.radius()};
+        return BoundingBox(c - offs, c + offs);
+    }
+    case bsIrregular: return m_bed.polygon.bounding_box();
+    case bsInfinite: return BoundingBox(m_bed.infbed.center, m_bed.infbed.center);
+    case bsUnknown: return BoundingBox({0, 0}, {0, 0});
+    }
+    
+    return {};
+}
+
 BedShapeHint &BedShapeHint::operator=(const BedShapeHint &cpy)
 {
     reset(cpy.m_type);

@@ -88,6 +88,7 @@ public:
     BedShapeHint& operator=(BedShapeHint &&cpy);
     
     BedShapes get_type() const { return m_type; }
+    BoundingBox get_bounding_box() const;
 
     const BoundingBox &get_box() const
     {

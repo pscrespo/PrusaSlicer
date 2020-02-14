@@ -387,7 +387,19 @@ static bool _arrange(const Pointfs &sizes, coordf_t dist, const BoundingBoxf* bb
 /*  arrange objects preserving their instance count
     but altering their instance positions */
 bool Model::arrange_objects(coordf_t dist, const BoundingBoxf* bb)
-{    
+{   
+    arrangement::BedShapeHint bedhint;
+    
+    if (bb) {
+        bedhint = arrangement::BedShapeHint(
+            BoundingBox(scaled(bb->min), scaled(bb->max)));
+    }
+    
+    return arrange_objects(dist, bedhint);
+}
+
+bool Model::arrange_objects(coordf_t dist, const arrangement::BedShapeHint &bed)
+{
     size_t count = 0;
     for (auto obj : objects) count += obj->instances.size();
     
@@ -401,16 +413,10 @@ bool Model::arrange_objects(coordf_t dist, const BoundingBoxf* bb)
             instances.emplace_back(minst);
         }
     
-    arrangement::BedShapeHint bedhint;
-    coord_t bedwidth = 0;
+    arrangement::arrange(input, scaled(dist), bed);
     
-    if (bb) {
-        bedwidth = scaled(bb->size().x());
-        bedhint = arrangement::BedShapeHint(
-            BoundingBox(scaled(bb->min), scaled(bb->max)));
-    }
-
-    arrangement::arrange(input, scaled(dist), bedhint);
+    BoundingBox bb = bed.get_bounding_box();
+    coord_t bedwidth = bb.max.x() - bb.min.x();
     
     bool ret = true;
     coord_t stride = bedwidth + bedwidth / 5;
@@ -1991,6 +1997,19 @@ void check_model_ids_equal(const Model &model1, const Model &model2)
         }
     }
 }
+
+arrangement::BedShapeHint Model::get_bed_shape_hint(const DynamicPrintConfig &config)
+{
+    const auto *bed_shape_opt = config.opt<ConfigOptionPoints>("bed_shape");
+    if (!bed_shape_opt) return {};
+    
+    auto &bedpoints = bed_shape_opt->values;
+    Polyline bedpoly; bedpoly.points.reserve(bedpoints.size());
+    for (auto &v : bedpoints) bedpoly.append(scaled(v));
+    
+    return arrangement::BedShapeHint(bedpoly);
+}
+
 #endif /* NDEBUG */
 
 }

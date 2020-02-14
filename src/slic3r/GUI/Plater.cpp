@@ -2746,18 +2746,9 @@ void Plater::priv::sla_optimize_rotation() {
     m_ui_jobs.start(Jobs::Rotoptimize);
 }
 
-arrangement::BedShapeHint Plater::priv::get_bed_shape_hint() const {
-
-    const auto *bed_shape_opt = config->opt<ConfigOptionPoints>("bed_shape");
-    assert(bed_shape_opt);
-
-    if (!bed_shape_opt) return {};
-
-    auto &bedpoints = bed_shape_opt->values;
-    Polyline bedpoly; bedpoly.points.reserve(bedpoints.size());
-    for (auto &v : bedpoints) bedpoly.append(scaled(v));
-
-    return arrangement::BedShapeHint(bedpoly);
+arrangement::BedShapeHint Plater::priv::get_bed_shape_hint() const
+{
+    return Model::get_bed_shape_hint(*config);
 }
 
 void Plater::priv::find_new_position(const ModelInstancePtrs &instances,

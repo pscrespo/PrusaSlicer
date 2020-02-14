@@ -803,6 +803,7 @@ public:
     void 		  translate(coordf_t x, coordf_t y, coordf_t z) { for (ModelObject *o : this->objects) o->translate(x, y, z); }
     TriangleMesh  mesh() const;
     bool 		  arrange_objects(coordf_t dist, const BoundingBoxf* bb = NULL);
+    bool 		  arrange_objects(coordf_t dist, const arrangement::BedShapeHint &bed);
     // Croaks if the duplicated objects do not fit the print bed.
     void 		  duplicate(size_t copies_num, coordf_t dist, const BoundingBoxf* bb = NULL);
     void 	      duplicate_objects(size_t copies_num, coordf_t dist, const BoundingBoxf* bb = NULL);
@@ -820,6 +821,8 @@ public:
     std::string   propose_export_file_name_and_path() const;
     // Propose an output path, replace extension. The new_extension shall contain the initial dot.
     std::string   propose_export_file_name_and_path(const std::string &new_extension) const;
+    
+    static arrangement::BedShapeHint get_bed_shape_hint(const DynamicPrintConfig &);
 
 private:
 	explicit Model(int) : ObjectBase(-1) { assert(this->id().invalid()); };
